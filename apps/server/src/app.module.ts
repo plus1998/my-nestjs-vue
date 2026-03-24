@@ -1,4 +1,4 @@
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -9,9 +9,12 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { envValidationSchema } from './config/env.validation';
 
+const ROOT_ENV_FILE = resolve(__dirname, '..', '..', '..', '.env');
+
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ROOT_ENV_FILE,
       isGlobal: true,
       cache: true,
       validationSchema: envValidationSchema,
