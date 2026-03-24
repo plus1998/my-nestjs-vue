@@ -24,15 +24,20 @@
     "vue-sonner": "^2.0.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.12.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.39.1",
+    "eslint-plugin-vue": "^10.8.0",
+    "globals": "^16.5.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
     "typescript": "~5.9.3",
+    "typescript-eslint": "^8.57.2",
     "vite": "^8.0.1",
+    "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^3.2.5"
   }
 }

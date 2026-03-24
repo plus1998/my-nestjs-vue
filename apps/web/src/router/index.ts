@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import { getStoredToken } from "@/lib/api-client";
+import { ensureCurrentUser } from "@/lib/api-client";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 
@@ -30,16 +30,20 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to) => {
-  const hasToken = Boolean(getStoredToken());
+router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth && !to.meta.guestOnly) {
+    return true;
+  }
 
-  if (to.meta.requiresAuth && !hasToken) {
+  const user = await ensureCurrentUser();
+
+  if (to.meta.requiresAuth && !user) {
     return {
       name: "login",
     };
   }
 
-  if (to.meta.guestOnly && hasToken) {
+  if (to.meta.guestOnly && user) {
     return {
       name: "home",
     };

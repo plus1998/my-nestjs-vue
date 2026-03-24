@@ -1,15 +1,15 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get } from '@nestjs/common';
 
-import { Public } from "./auth/decorators/public.decorator";
+import { Public } from './auth/decorators/public.decorator';
 
-@Controller("health")
+@Controller('health')
 export class AppController {
   @Public()
   @Get()
   getHealth() {
     return {
-      status: "ok",
-      service: "server",
+      status: 'ok',
+      service: 'server',
     };
   }
 }

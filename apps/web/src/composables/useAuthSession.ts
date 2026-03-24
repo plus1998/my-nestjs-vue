@@ -1,24 +1,31 @@
+import { useMutation, useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef } from "vue";
 
 import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
 
-import { apiClient, getStoredToken, queryClient, setStoredToken } from "@/lib/api-client";
-
-const token = shallowRef(getStoredToken());
+import {
+  AUTH_ME_QUERY_KEY,
+  fetchCurrentUser,
+  loginRequest,
+  logoutRequest,
+  queryClient,
+  registerRequest,
+  setCurrentUser,
+} from "@/lib/api-client";
 
 export function useAuthSession() {
   const loginErrorMessage = shallowRef("");
   const registerErrorMessage = shallowRef("");
 
-  const profileQuery = apiClient.auth.me.useQuery(["auth", "me"], undefined, {
-    enabled: computed(() => token.value.length > 0),
+  const profileQuery = useQuery({
+    queryKey: AUTH_ME_QUERY_KEY,
+    queryFn: fetchCurrentUser,
     retry: false,
-    onError: () => {
-      clearSession();
-    },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const loginMutation = apiClient.auth.login.useMutation({
+  const loginMutation = useMutation({
+    mutationFn: loginRequest,
     onError: (error) => {
       loginErrorMessage.value = getErrorMessage(
         error,
@@ -27,7 +34,8 @@ export function useAuthSession() {
     },
   });
 
-  const registerMutation = apiClient.auth.register.useMutation({
+  const registerMutation = useMutation({
+    mutationFn: registerRequest,
     onError: (error) => {
       registerErrorMessage.value = getErrorMessage(
         error,
@@ -36,41 +44,40 @@ export function useAuthSession() {
     },
   });
 
-  const user = computed(() => profileQuery.data.value?.body.user ?? null);
-  const isAuthenticated = computed(() => token.value.length > 0);
+  const logoutMutation = useMutation({
+    mutationFn: logoutRequest,
+  });
+
+  const user = computed(() => profileQuery.data.value ?? null);
+  const isAuthenticated = computed(() => user.value !== null);
   const isBusy = computed(
-    () => loginMutation.isLoading.value || registerMutation.isLoading.value,
+    () =>
+      loginMutation.isLoading.value ||
+      registerMutation.isLoading.value ||
+      logoutMutation.isLoading.value,
   );
 
   async function login(credentials: LoginBody) {
     loginErrorMessage.value = "";
 
-    const response = await loginMutation.mutateAsync({
-      body: credentials,
-    });
-
-    token.value = response.body.accessToken;
-    setStoredToken(response.body.accessToken);
-    await queryClient.invalidateQueries({
-      queryKey: ["auth", "me"],
-    });
+    const response = await loginMutation.mutateAsync(credentials);
+    setCurrentUser(response.user);
+    return response;
   }
 
   async function register(payload: RegisterBody) {
     registerErrorMessage.value = "";
 
-    return registerMutation.mutateAsync({
-      body: payload,
-    });
+    return registerMutation.mutateAsync(payload);
   }
 
-  function clearSession() {
-    token.value = "";
-    setStoredToken("");
+  async function clearSession() {
+    await logoutMutation.mutateAsync();
+    setCurrentUser(null);
     loginErrorMessage.value = "";
     registerErrorMessage.value = "";
     queryClient.removeQueries({
-      queryKey: ["auth", "me"],
+      queryKey: AUTH_ME_QUERY_KEY,
     });
   }
 

@@ -27,8 +27,11 @@ export const authUserSchema = z.object({
 });
 
 export const loginResponseSchema = z.object({
-  accessToken: z.string().min(1),
   user: authUserSchema,
+});
+
+export const logoutResponseSchema = z.object({
+  success: z.literal(true),
 });
 
 export const authContract = c.router({
@@ -49,13 +52,22 @@ export const authContract = c.router({
   login: {
     method: "POST",
     path: "/auth/login",
-    summary: "Authenticate user and issue a JWT",
+    summary: "Authenticate user and create a session",
     body: loginBodySchema,
     responses: {
       200: loginResponseSchema,
       401: z.object({
         message: z.string(),
       }),
+    },
+  },
+  logout: {
+    method: "POST",
+    path: "/auth/logout",
+    summary: "Destroy the current session",
+    body: z.object({}),
+    responses: {
+      200: logoutResponseSchema,
     },
   },
   me: {
@@ -76,3 +88,5 @@ export const authContract = c.router({
 export type RegisterBody = z.infer<typeof registerBodySchema>;
 export type LoginBody = z.infer<typeof loginBodySchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export type LogoutResponse = z.infer<typeof logoutResponseSchema>;

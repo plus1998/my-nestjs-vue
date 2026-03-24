@@ -7,5 +7,5 @@
       "@my-nestjs-vue/api-contract": ["../../packages/api-contract/src"]
     }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts"]
 }

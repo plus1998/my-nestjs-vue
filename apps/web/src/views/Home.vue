@@ -21,7 +21,7 @@ watch(
 );
 
 async function handleLogout() {
-  logout();
+  await logout();
   await router.replace("/login");
 }
 </script>

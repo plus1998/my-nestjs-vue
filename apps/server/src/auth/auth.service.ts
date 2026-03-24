@@ -2,26 +2,24 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
-} from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { InjectRepository } from "@nestjs/typeorm";
-import { compare, hash } from "bcryptjs";
-import { Repository } from "typeorm";
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { compare, hash } from 'bcryptjs';
+import { Repository } from 'typeorm';
 
 import type {
   AuthUser,
   LoginBody,
   RegisterBody,
-} from "@my-nestjs-vue/api-contract";
+} from '@my-nestjs-vue/api-contract';
 
-import { UserEntity } from "../users/entities/user.entity";
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly usersRepository: Repository<UserEntity>,
-    private readonly jwtService: JwtService,
   ) {}
 
   async login(credentials: LoginBody) {
@@ -32,19 +30,21 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException("用户名或密码错误");
+      throw new UnauthorizedException('用户名或密码错误');
     }
 
-    const passwordMatches = await compare(credentials.password, user.passwordHash);
+    const passwordMatches = await compare(
+      credentials.password,
+      user.passwordHash,
+    );
 
     if (!passwordMatches) {
-      throw new UnauthorizedException("用户名或密码错误");
+      throw new UnauthorizedException('用户名或密码错误');
     }
 
     const authUser = this.toAuthUser(user);
 
     return {
-      accessToken: await this.jwtService.signAsync(authUser),
       user: authUser,
     };
   }
@@ -57,7 +57,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException("用户名已被占用");
+      throw new ConflictException('用户名已被占用');
     }
 
     const user = this.usersRepository.create({
@@ -72,7 +72,21 @@ export class AuthService {
     };
   }
 
-  toAuthUser(user: UserEntity): AuthUser {
+  async findAuthUserById(id: string): Promise<AuthUser | null> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return this.toAuthUser(user);
+  }
+
+  private toAuthUser(user: UserEntity): AuthUser {
     return {
       id: user.id,
       username: user.username,

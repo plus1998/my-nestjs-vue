@@ -1,15 +1,13 @@
-import { join } from "node:path";
+import { join } from 'node:path';
 
-import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { APP_GUARD } from "@nestjs/core";
-import { ServeStaticModule } from "@nestjs/serve-static";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AppController } from "./app.controller";
-import { AuthModule } from "./auth/auth.module";
-import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { envValidationSchema } from "./config/env.validation";
+import { AppController } from './app.controller';
+import { AuthModule } from './auth/auth.module';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
@@ -19,18 +17,18 @@ import { envValidationSchema } from "./config/env.validation";
       validationSchema: envValidationSchema,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "..", "..", "web", "dist"),
-      exclude: ["/auth*", "/health"],
+      rootPath: join(__dirname, '..', '..', 'web', 'dist'),
+      exclude: ['/auth*', '/health'],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: "mysql",
-        host: configService.getOrThrow<string>("DB_HOST"),
-        port: configService.getOrThrow<number>("DB_PORT"),
-        username: configService.getOrThrow<string>("DB_USER"),
-        password: configService.getOrThrow<string>("DB_PASSWORD"),
-        database: configService.getOrThrow<string>("DB_NAME"),
+        type: 'mysql',
+        host: configService.getOrThrow<string>('DB_HOST'),
+        port: configService.getOrThrow<number>('DB_PORT'),
+        username: configService.getOrThrow<string>('DB_USER'),
+        password: configService.getOrThrow<string>('DB_PASSWORD'),
+        database: configService.getOrThrow<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false,
       }),
@@ -38,11 +36,5 @@ import { envValidationSchema } from "./config/env.validation";
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
 })
 export class AppModule {}
