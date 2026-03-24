@@ -8,6 +8,12 @@ import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  TabsContent,
+  TabsList,
+  TabsRoot,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useAuthSession } from "@/composables/useAuthSession";
 
 const router = useRouter();
@@ -77,111 +83,99 @@ async function handleLogin() {
 
         <div class="p-6 sm:p-8 lg:p-10">
           <div class="mx-auto max-w-md space-y-8">
-            <div class="space-y-3">
-              <div class="grid grid-cols-2 gap-2 rounded-full bg-white/6 p-1">
-                <button
-                  class="rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                  :class="mode === 'register' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'text-[var(--muted-foreground)]'"
-                  type="button"
-                  @click="mode = 'register'"
-                >
-                  注册
-                </button>
-                <button
-                  class="rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                  :class="mode === 'login' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'text-[var(--muted-foreground)]'"
-                  type="button"
-                  @click="mode = 'login'"
-                >
-                  登录
-                </button>
+            <TabsRoot v-model:model-value="mode" class="space-y-6">
+              <div class="space-y-3">
+                <TabsList>
+                  <TabsTrigger value="login">登录</TabsTrigger>
+                  <TabsTrigger value="register">注册</TabsTrigger>
+                </TabsList>
+
+                <div class="space-y-1">
+                  <h2 class="text-3xl font-semibold tracking-[-0.04em]">
+                    {{ mode === "register" ? "创建账户" : "欢迎回来" }}
+                  </h2>
+                  <p class="text-sm text-[var(--muted-foreground)]">
+                    {{ mode === "register" ? "填写信息后即可开始使用。" : "输入账号信息继续访问。" }}
+                  </p>
+                </div>
               </div>
 
-              <div class="space-y-1">
-                <h2 class="text-3xl font-semibold tracking-[-0.04em]">
-                  {{ mode === "register" ? "创建账户" : "欢迎回来" }}
-                </h2>
-                <p class="text-sm text-[var(--muted-foreground)]">
-                  {{ mode === "register" ? "填写信息后即可开始使用。" : "输入账号信息继续访问。" }}
-                </p>
-              </div>
-            </div>
+              <TabsContent class="space-y-4" value="register">
+                <form class="space-y-4" @submit.prevent="handleRegister">
+                  <label class="block space-y-2">
+                    <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                      <UserRound class="h-4 w-4" />
+                      用户名
+                    </span>
+                    <Input
+                      v-model="registerForm.username"
+                      placeholder="请输入用户名"
+                    />
+                  </label>
 
-            <form
-              v-if="mode === 'register'"
-              class="space-y-4"
-              @submit.prevent="handleRegister"
-            >
-              <label class="block space-y-2">
-                <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                  <UserRound class="h-4 w-4" />
-                  用户名
-                </span>
-                <Input
-                  v-model="registerForm.username"
-                  placeholder="请输入用户名"
-                />
-              </label>
+                  <label class="block space-y-2">
+                    <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                      <LockKeyhole class="h-4 w-4" />
+                      密码
+                    </span>
+                    <Input
+                      v-model="registerForm.password"
+                      placeholder="请输入密码"
+                      type="password"
+                    />
+                  </label>
 
-              <label class="block space-y-2">
-                <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                  <LockKeyhole class="h-4 w-4" />
-                  密码
-                </span>
-                <Input
-                  v-model="registerForm.password"
-                  placeholder="请输入密码"
-                  type="password"
-                />
-              </label>
+                  <p
+                    v-if="registerErrorMessage"
+                    class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+                  >
+                    {{ registerErrorMessage }}
+                  </p>
 
-              <p
-                v-if="registerErrorMessage"
-                class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
-              >
-                {{ registerErrorMessage }}
-              </p>
+                  <Button class="w-full" :disabled="isBusy" size="lg" type="submit">
+                    {{ isBusy ? "提交中..." : "立即注册" }}
+                  </Button>
+                </form>
+              </TabsContent>
 
-              <Button class="w-full" :disabled="isBusy" size="lg" type="submit">
-                {{ isBusy ? "提交中..." : "立即注册" }}
-              </Button>
-            </form>
+              <TabsContent class="space-y-4" value="login">
+                <form class="space-y-4" @submit.prevent="handleLogin">
+                  <label class="block space-y-2">
+                    <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                      <UserRound class="h-4 w-4" />
+                      用户名
+                    </span>
+                    <Input
+                      v-model="loginForm.username"
+                      placeholder="请输入用户名"
+                    />
+                  </label>
 
-            <form v-else class="space-y-4" @submit.prevent="handleLogin">
-              <label class="block space-y-2">
-                <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                  <UserRound class="h-4 w-4" />
-                  用户名
-                </span>
-                <Input
-                  v-model="loginForm.username"
-                  placeholder="请输入用户名"
-                />
-              </label>
+                  <label class="block space-y-2">
+                    <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                      <LockKeyhole class="h-4 w-4" />
+                      密码
+                    </span>
+                    <Input
+                      v-model="loginForm.password"
+                      placeholder="请输入密码"
+                      type="password"
+                    />
+                  </label>
 
-              <label class="block space-y-2">
-                <span class="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                  <LockKeyhole class="h-4 w-4" />
-                  密码
-                </span>
-                <Input
-                  v-model="loginForm.password"
-                  placeholder="请输入密码"
-                  type="password"
-                />
-              </label>
+                  <p
+                    v-if="loginErrorMessage"
+                    class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+                  >
+                    {{ loginErrorMessage }}
+                  </p>
 
-              <p
-                v-if="loginErrorMessage"
-                class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
-              >
-                {{ loginErrorMessage }}
-              </p>
-
-              <Button class="w-full" :disabled="isBusy" size="lg" type="submit">
-                {{ isBusy ? "登录中..." : "登录" }}
-              </Button>
-            </form>
+                  <Button class="w-full" :disabled="isBusy" size="lg" type="submit">
+                    {{ isBusy ? "登录中..." : "登录" }}
+                  </Button>
+                </form>
+              </TabsContent>
+            </TabsRoot>
           </div>
         </div>
       </section>

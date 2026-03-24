@@ -18,6 +18,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.542.0",
+    "reka-ui": "^2.9.2",
     "tailwind-merge": "^3.3.1",
     "vue": "^3.5.30",
     "vue-router": "^5.0.4",
