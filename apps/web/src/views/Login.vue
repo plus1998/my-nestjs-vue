@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { reactive, shallowRef } from "vue";
 import { useRouter } from "vue-router";
-import { toast } from "vue-sonner";
 import { LockKeyhole, UserRound } from "lucide-vue-next";
 
 import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
@@ -15,6 +14,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useAuthSession } from "@/composables/useAuthSession";
+import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const {
@@ -24,6 +24,7 @@ const {
   loginErrorMessage,
   registerErrorMessage,
 } = useAuthSession();
+const { toast } = useToast();
 
 const mode = shallowRef<"login" | "register">("login");
 
@@ -46,7 +47,11 @@ async function handleRegister() {
   loginForm.username = registerForm.username.trim();
   loginForm.password = registerForm.password;
   mode.value = "login";
-  toast.success("注册成功，请登录。");
+  toast({
+    title: "注册成功",
+    description: "请使用刚刚创建的账户登录。",
+    variant: "success",
+  });
 }
 
 async function handleLogin() {
