@@ -1,15 +1,11 @@
-import { useMutation, useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef } from "vue";
 
 import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
 
 import {
   AUTH_ME_QUERY_KEY,
-  fetchCurrentUser,
-  loginRequest,
-  logoutRequest,
+  apiClient,
   queryClient,
-  registerRequest,
   setCurrentUser,
 } from "@/lib/api-client";
 
@@ -17,15 +13,12 @@ export function useAuthSession() {
   const loginErrorMessage = shallowRef("");
   const registerErrorMessage = shallowRef("");
 
-  const profileQuery = useQuery({
-    queryKey: AUTH_ME_QUERY_KEY,
-    queryFn: fetchCurrentUser,
+  const profileQuery = apiClient.auth.me.useQuery(AUTH_ME_QUERY_KEY, undefined, {
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
-  const loginMutation = useMutation({
-    mutationFn: loginRequest,
+  const loginMutation = apiClient.auth.login.useMutation({
     onError: (error) => {
       loginErrorMessage.value = getErrorMessage(
         error,
@@ -34,8 +27,7 @@ export function useAuthSession() {
     },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: registerRequest,
+  const registerMutation = apiClient.auth.register.useMutation({
     onError: (error) => {
       registerErrorMessage.value = getErrorMessage(
         error,
@@ -44,11 +36,9 @@ export function useAuthSession() {
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: logoutRequest,
-  });
+  const logoutMutation = apiClient.auth.logout.useMutation();
 
-  const user = computed(() => profileQuery.data.value ?? null);
+  const user = computed(() => profileQuery.data.value?.body.user ?? null);
   const isAuthenticated = computed(() => user.value !== null);
   const isBusy = computed(
     () =>
@@ -60,19 +50,27 @@ export function useAuthSession() {
   async function login(credentials: LoginBody) {
     loginErrorMessage.value = "";
 
-    const response = await loginMutation.mutateAsync(credentials);
-    setCurrentUser(response.user);
-    return response;
+    const response = await loginMutation.mutateAsync({
+      body: credentials,
+    });
+    setCurrentUser(response.body.user);
+    return response.body;
   }
 
   async function register(payload: RegisterBody) {
     registerErrorMessage.value = "";
 
-    return registerMutation.mutateAsync(payload);
+    const response = await registerMutation.mutateAsync({
+      body: payload,
+    });
+
+    return response.body;
   }
 
   async function clearSession() {
-    await logoutMutation.mutateAsync();
+    await logoutMutation.mutateAsync({
+      body: {},
+    });
     setCurrentUser(null);
     loginErrorMessage.value = "";
     registerErrorMessage.value = "";
