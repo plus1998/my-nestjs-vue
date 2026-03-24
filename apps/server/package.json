@@ -5,9 +5,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "db:migration:generate": "pnpm exec typeorm-ts-node-commonjs -d src/database/data-source.ts migration:generate src/database/migrations/AutoMigration",
-    "db:migration:run": "pnpm exec typeorm-ts-node-commonjs -d src/database/data-source.ts migration:run",
-    "db:migration:show": "pnpm exec typeorm-ts-node-commonjs -d src/database/data-source.ts migration:show",
+    "db:migration:generate": "node -r ts-node/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:generate src/database/migrations/AutoMigration",
+    "db:migration:run": "node -r ts-node/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:run",
+    "db:migration:show": "node -r ts-node/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts migration:show",
     "dev": "node --watch --require ts-node/register src/main.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",
@@ -69,7 +69,6 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typeorm-ts-node-commonjs": "^0.3.20",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
