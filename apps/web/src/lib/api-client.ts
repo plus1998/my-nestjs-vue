@@ -20,9 +20,7 @@ function getApiBaseUrl() {
 
 export const apiClient = initQueryClient(contract, {
   baseUrl: getApiBaseUrl(),
-  fetchOptions: {
-    credentials: "include",
-  },
+  credentials: "include",
 });
 
 export function setCurrentUser(user: AuthUser | null) {
