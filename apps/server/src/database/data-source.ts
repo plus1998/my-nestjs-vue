@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 
 import 'reflect-metadata';
-import dotenv from 'dotenv';
+import { config as loadEnv } from 'dotenv';
 
 import { DataSource } from 'typeorm';
 
@@ -9,7 +9,7 @@ import { UserEntity } from '../users/entities/user.entity';
 
 const ROOT_ENV_FILE = resolve(__dirname, '..', '..', '..', '..', '.env');
 
-dotenv.config({ path: ROOT_ENV_FILE });
+loadEnv({ path: ROOT_ENV_FILE });
 
 export default new DataSource({
   type: 'mysql',
