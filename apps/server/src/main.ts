@@ -5,7 +5,6 @@ import * as session from 'express-session';
 import Redis from 'ioredis';
 
 import { AppModule } from './app.module';
-import { SESSION_COOKIE_NAME } from './auth/constants/session.constants';
 import { IoredisSessionStore } from './auth/stores/ioredis-session.store';
 
 async function bootstrap() {
@@ -19,6 +18,8 @@ async function bootstrap() {
     lazyConnect: false,
   });
   const sessionSecret = configService.getOrThrow<string>('SESSION_SECRET');
+  const sessionCookieName =
+    configService.getOrThrow<string>('SESSION_COOKIE_NAME');
   const sessionMaxAgeDays =
     configService.get<number>('SESSION_MAX_AGE_DAYS') ?? 7;
   const sessionMaxAgeMs = sessionMaxAgeDays * 24 * 60 * 60 * 1000;
@@ -31,7 +32,7 @@ async function bootstrap() {
   });
   app.use(
     session({
-      name: SESSION_COOKIE_NAME,
+      name: sessionCookieName,
       secret: sessionSecret,
       store: new IoredisSessionStore({
         client: redisClient,

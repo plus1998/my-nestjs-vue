@@ -14,6 +14,7 @@ export const envValidationSchema = Joi.object({
   REDIS_PORT: Joi.number().port().required(),
   REDIS_PASSWORD: Joi.string().allow('').default(''),
   SESSION_SECRET: Joi.string().min(16).required(),
+  SESSION_COOKIE_NAME: Joi.string().trim().min(1).required(),
   SESSION_MAX_AGE_DAYS: Joi.number().integer().min(1).default(7),
   QUEUE_PREFIX: Joi.string().default('my_app_queue'),
 });

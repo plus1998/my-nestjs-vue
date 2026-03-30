@@ -5,19 +5,22 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TsRestException, TsRestHandler, tsRestHandler } from '@ts-rest/nest';
 import type { Response } from 'express';
 
 import { authContract } from '@my-nestjs-vue/api-contract';
 
-import { SESSION_COOKIE_NAME } from './constants/session.constants';
 import type { RequestWithUser } from '../common/types/request-with-user.interface';
 import { Public } from './decorators/public.decorator';
 import { AuthService } from './auth.service';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Public()
   @TsRestHandler(authContract.register)
@@ -81,7 +84,9 @@ export class AuthController {
   ): unknown {
     return tsRestHandler(authContract.logout, async () => {
       await destroySession(request);
-      response.clearCookie(SESSION_COOKIE_NAME);
+      response.clearCookie(
+        this.configService.getOrThrow<string>('SESSION_COOKIE_NAME'),
+      );
 
       return {
         status: 200,
