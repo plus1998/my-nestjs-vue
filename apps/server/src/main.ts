@@ -6,9 +6,10 @@ import Redis from 'ioredis';
 
 import { AppModule } from './app.module';
 import { IoredisSessionStore } from './auth/stores/ioredis-session.store';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
   const redisClient = new Redis({
@@ -48,6 +49,9 @@ async function bootstrap() {
       },
     }),
   );
+  if (isProduction) {
+    app.set('trust proxy', 1);
+  }
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
