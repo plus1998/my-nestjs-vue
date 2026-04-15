@@ -1,21 +1,25 @@
 import {
-  ConflictException,
+  Body,
   Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
   Req,
   Res,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TsRestException, TsRestHandler, tsRestHandler } from '@ts-rest/nest';
 import type { Response } from 'express';
-
-import { authContract } from '@my-nestjs-vue/api-contract';
 
 import type { RequestWithUser } from '../common/types/request-with-user.interface';
 import { Public } from './decorators/public.decorator';
 import { AuthService } from './auth.service';
+import { AuthSessionResponseDto } from './dto/auth-session-response.dto';
+import { LoginDto } from './dto/login.dto';
+import { LogoutResponseDto } from './dto/logout-response.dto';
+import { RegisterDto } from './dto/register.dto';
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -23,90 +27,47 @@ export class AuthController {
   ) {}
 
   @Public()
-  @TsRestHandler(authContract.register)
-  register(): unknown {
-    return tsRestHandler(authContract.register, async ({ body }) => {
-      try {
-        const payload = body;
+  @Post('register')
+  async register(
+    @Body() payload: RegisterDto,
+  ): Promise<AuthSessionResponseDto> {
+    const user = await this.authService.register(payload);
 
-        return {
-          status: 201,
-          body: await this.authService.register(payload),
-        };
-      } catch (error) {
-        if (!(error instanceof ConflictException)) {
-          throw error;
-        }
-
-        throw new TsRestException(authContract.register, {
-          status: 409,
-          body: {
-            message: error.message,
-          },
-        });
-      }
-    });
+    return new AuthSessionResponseDto(user);
   }
 
   @Public()
-  @TsRestHandler(authContract.login)
-  login(@Req() request: RequestWithUser): unknown {
-    return tsRestHandler(authContract.login, async ({ body }) => {
-      try {
-        const credentials = body;
-        const result = await this.authService.login(credentials);
-        request.session.userId = result.user.id;
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  async login(
+    @Body() credentials: LoginDto,
+    @Req() request: RequestWithUser,
+  ): Promise<AuthSessionResponseDto> {
+    const user = await this.authService.login(credentials);
+    request.session.userId = user.id;
 
-        return {
-          status: 200,
-          body: result,
-        };
-      } catch (error) {
-        if (!(error instanceof UnauthorizedException)) {
-          throw error;
-        }
-
-        throw new TsRestException(authContract.login, {
-          status: 401,
-          body: {
-            message: error.message,
-          },
-        });
-      }
-    });
+    return new AuthSessionResponseDto(user);
   }
 
   @Public()
-  @TsRestHandler(authContract.logout)
-  logout(
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(
     @Req() request: RequestWithUser,
     @Res({ passthrough: true }) response: Response,
-  ): unknown {
-    return tsRestHandler(authContract.logout, async () => {
-      await destroySession(request);
-      response.clearCookie(
-        this.configService.getOrThrow<string>('SESSION_COOKIE_NAME'),
-      );
+  ): Promise<LogoutResponseDto> {
+    await destroySession(request);
+    response.clearCookie(
+      this.configService.getOrThrow<string>('SESSION_COOKIE_NAME'),
+    );
 
-      return {
-        status: 200,
-        body: {
-          success: true,
-        },
-      };
-    });
+    return new LogoutResponseDto();
   }
 
-  @TsRestHandler(authContract.me)
-  me(@Req() request: RequestWithUser): unknown {
-    return tsRestHandler(authContract.me, async () =>
-      Promise.resolve({
-        status: 200,
-        body: {
-          user: request.user,
-        },
-      }),
-    );
+  @HttpCode(HttpStatus.OK)
+  @Get('me')
+  me(@Req() request: RequestWithUser): AuthSessionResponseDto {
+    return new AuthSessionResponseDto(request.user);
   }
 }
 

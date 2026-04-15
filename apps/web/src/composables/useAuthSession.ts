@@ -1,164 +1,170 @@
-import { computed, shallowRef } from "vue";
-
-import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
+import { computed, readonly, shallowRef } from "vue";
 
 import {
-  AUTH_ME_QUERY_KEY,
-  apiClient,
-  queryClient,
-  setCurrentUser,
-} from "@/lib/api-client";
+  getCurrentUser,
+  login as loginRequest,
+  logout as logoutRequest,
+  register as registerRequest,
+  type AuthSessionResponse,
+  type AuthUser,
+  type LoginPayload,
+  type RegisterPayload,
+} from "@/lib/auth-api";
+import { ApiError } from "@/lib/fetch-client";
+
+const currentUser = shallowRef<AuthUser | null>(null);
+const hasResolvedProfile = shallowRef(false);
+const isProfileLoading = shallowRef(false);
+const isLoggingIn = shallowRef(false);
+const isRegistering = shallowRef(false);
+const isLoggingOut = shallowRef(false);
+const loginErrorMessage = shallowRef("");
+const registerErrorMessage = shallowRef("");
+
+const isAuthenticated = computed(() => currentUser.value !== null);
+const isBusy = computed(
+  () =>
+    isLoggingIn.value || isRegistering.value || isLoggingOut.value,
+);
+
+let profileRequest: Promise<AuthUser | null> | null = null;
+let profileRequestId = 0;
+
+async function ensureCurrentUser(force = false) {
+  if (!force && hasResolvedProfile.value) {
+    return currentUser.value;
+  }
+
+  if (profileRequest) {
+    return profileRequest;
+  }
+
+  isProfileLoading.value = true;
+
+  const requestId = ++profileRequestId;
+  const request = (async () => {
+    try {
+      const response = await getCurrentUser();
+
+      if (requestId === profileRequestId) {
+        currentUser.value = response.user;
+        hasResolvedProfile.value = true;
+
+        return response.user;
+      }
+
+      return currentUser.value;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        if (requestId === profileRequestId) {
+          currentUser.value = null;
+          hasResolvedProfile.value = true;
+        }
+
+        return null;
+      }
+
+      throw error;
+    } finally {
+      if (requestId === profileRequestId) {
+        isProfileLoading.value = false;
+        profileRequest = null;
+      }
+    }
+  })();
+
+  profileRequest = request;
+  return request;
+}
+
+async function refreshProfile() {
+  return ensureCurrentUser(true);
+}
+
+async function login(credentials: LoginPayload): Promise<AuthSessionResponse> {
+  loginErrorMessage.value = "";
+  isLoggingIn.value = true;
+
+  try {
+    const response = await loginRequest(credentials);
+
+    currentUser.value = response.user;
+    hasResolvedProfile.value = true;
+
+    return response;
+  } catch (error) {
+    loginErrorMessage.value = getErrorMessage(
+      error,
+      "登录失败，请检查用户名和密码。",
+    );
+    throw error;
+  } finally {
+    isLoggingIn.value = false;
+  }
+}
+
+async function register(
+  payload: RegisterPayload,
+): Promise<AuthSessionResponse> {
+  registerErrorMessage.value = "";
+  isRegistering.value = true;
+
+  try {
+    return await registerRequest(payload);
+  } catch (error) {
+    registerErrorMessage.value = getErrorMessage(
+      error,
+      "注册失败，请稍后再试。",
+    );
+    throw error;
+  } finally {
+    isRegistering.value = false;
+  }
+}
+
+async function logout() {
+  isLoggingOut.value = true;
+
+  try {
+    await logoutRequest();
+  } finally {
+    profileRequestId += 1;
+    profileRequest = null;
+    isProfileLoading.value = false;
+    isLoggingOut.value = false;
+    currentUser.value = null;
+    hasResolvedProfile.value = true;
+    loginErrorMessage.value = "";
+    registerErrorMessage.value = "";
+  }
+}
+
+const authSession = {
+  ensureCurrentUser,
+  refreshProfile,
+  login,
+  register,
+  logout,
+  user: readonly(currentUser),
+  isAuthenticated,
+  isBusy,
+  isProfileLoading: readonly(isProfileLoading),
+  loginErrorMessage: readonly(loginErrorMessage),
+  registerErrorMessage: readonly(registerErrorMessage),
+};
 
 export function useAuthSession() {
-  const loginErrorMessage = shallowRef("");
-  const registerErrorMessage = shallowRef("");
-
-  const profileQuery = apiClient.auth.me.useQuery(AUTH_ME_QUERY_KEY, undefined, {
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const loginMutation = apiClient.auth.login.useMutation({
-    onError: (error) => {
-      loginErrorMessage.value = getErrorMessage(
-        error,
-        "登录失败，请检查用户名和密码。",
-      );
-    },
-  });
-
-  const registerMutation = apiClient.auth.register.useMutation({
-    onError: (error) => {
-      registerErrorMessage.value = getErrorMessage(
-        error,
-        "注册失败，请稍后再试。",
-      );
-    },
-  });
-
-  const logoutMutation = apiClient.auth.logout.useMutation();
-
-  const user = computed(() => profileQuery.data.value?.body.user ?? null);
-  const isAuthenticated = computed(() => user.value !== null);
-  const isBusy = computed(
-    () =>
-      loginMutation.isLoading.value ||
-      registerMutation.isLoading.value ||
-      logoutMutation.isLoading.value,
-  );
-
-  async function login(credentials: LoginBody) {
-    loginErrorMessage.value = "";
-
-    const response = await loginMutation.mutateAsync({
-      body: credentials,
-    });
-    setCurrentUser(response.body.user);
-    return response.body;
-  }
-
-  async function register(payload: RegisterBody) {
-    registerErrorMessage.value = "";
-
-    const response = await registerMutation.mutateAsync({
-      body: payload,
-    });
-
-    return response.body;
-  }
-
-  async function clearSession() {
-    await logoutMutation.mutateAsync({
-      body: {},
-    });
-    setCurrentUser(null);
-    loginErrorMessage.value = "";
-    registerErrorMessage.value = "";
-    queryClient.removeQueries({
-      queryKey: AUTH_ME_QUERY_KEY,
-    });
-  }
-
-  return {
-    login,
-    register,
-    logout: clearSession,
-    refreshProfile: () => profileQuery.refetch(),
-    profileQuery,
-    user,
-    isBusy,
-    isAuthenticated,
-    loginErrorMessage,
-    registerErrorMessage,
-  };
+  return authSession;
 }
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "body" in error &&
-    typeof error.body === "object" &&
-    error.body !== null &&
-    "message" in error.body &&
-    typeof error.body.message === "string"
-  ) {
-    return error.body.message;
+  if (error instanceof ApiError && error.message.length > 0) {
+    return error.message;
   }
 
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "body" in error &&
-    typeof error.body === "object" &&
-    error.body !== null &&
-    "bodyResult" in error.body &&
-    typeof error.body.bodyResult === "object" &&
-    error.body.bodyResult !== null &&
-    "issues" in error.body.bodyResult &&
-    Array.isArray(error.body.bodyResult.issues)
-  ) {
-    const [firstIssue] = error.body.bodyResult.issues as Array<{
-      code?: string;
-      minimum?: number;
-      message?: string;
-      path?: string[];
-    }>;
-
-    if (!firstIssue) {
-      return fallbackMessage;
-    }
-
-    const fieldName = getFieldLabel(firstIssue.path?.[0]);
-
-    if (firstIssue.code === "too_small" && typeof firstIssue.minimum === "number") {
-      return `${fieldName}至少需要 ${firstIssue.minimum} 个字符`;
-    }
-
-    if (typeof firstIssue.message === "string" && firstIssue.message.length > 0) {
-      return `${fieldName}${firstIssue.message}`;
-    }
-  }
-
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof error.message === "string"
-  ) {
+  if (error instanceof Error && error.message.length > 0) {
     return error.message;
   }
 
   return fallbackMessage;
-}
-
-function getFieldLabel(field?: string) {
-  switch (field) {
-    case "username":
-      return "用户名";
-    case "password":
-      return "密码";
-    default:
-      return "输入内容";
-  }
 }

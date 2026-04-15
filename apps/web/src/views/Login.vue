@@ -3,8 +3,6 @@ import { reactive, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 import { LockKeyhole, UserRound } from "lucide-vue-next";
 
-import type { LoginBody, RegisterBody } from "@my-nestjs-vue/api-contract";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +12,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useAuthSession } from "@/composables/useAuthSession";
+import type { LoginPayload, RegisterPayload } from "@/lib/auth-api";
 import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
@@ -28,39 +27,47 @@ const { toast } = useToast();
 
 const mode = shallowRef<"login" | "register">("login");
 
-const loginForm = reactive<LoginBody>({
+const loginForm = reactive<LoginPayload>({
   username: "",
   password: "",
 });
 
-const registerForm = reactive<RegisterBody>({
+const registerForm = reactive<RegisterPayload>({
   username: "",
   password: "",
 });
 
 async function handleRegister() {
-  await register({
-    username: registerForm.username.trim(),
-    password: registerForm.password,
-  });
+  try {
+    await register({
+      username: registerForm.username.trim(),
+      password: registerForm.password,
+    });
 
-  loginForm.username = registerForm.username.trim();
-  loginForm.password = registerForm.password;
-  mode.value = "login";
-  toast({
-    title: "注册成功",
-    description: "请使用刚刚创建的账户登录。",
-    variant: "success",
-  });
+    loginForm.username = registerForm.username.trim();
+    loginForm.password = registerForm.password;
+    mode.value = "login";
+    toast({
+      title: "注册成功",
+      description: "请使用刚刚创建的账户登录。",
+      variant: "success",
+    });
+  } catch {
+    // Error state is managed by the auth composable.
+  }
 }
 
 async function handleLogin() {
-  await login({
-    username: loginForm.username.trim(),
-    password: loginForm.password,
-  });
+  try {
+    await login({
+      username: loginForm.username.trim(),
+      password: loginForm.password,
+    });
 
-  await router.push("/");
+    await router.push("/");
+  } catch {
+    // Error state is managed by the auth composable.
+  }
 }
 </script>
 

@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import { ensureCurrentUser } from "@/lib/api-client";
+import { useAuthSession } from "@/composables/useAuthSession";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
+
+const { ensureCurrentUser } = useAuthSession();
 
 const router = createRouter({
   history: createWebHistory(),

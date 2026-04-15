@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/composables/useAuthSession";
 
 const router = useRouter();
-const { user, logout, profileQuery, isAuthenticated } = useAuthSession();
+const { user, logout, refreshProfile, isAuthenticated, isProfileLoading } =
+  useAuthSession();
 
 watch(
   () => isAuthenticated.value,
@@ -24,6 +25,14 @@ async function handleLogout() {
   await logout();
   await router.replace("/login");
 }
+
+async function handleRefresh() {
+  try {
+    await refreshProfile();
+  } catch {
+    // Current screen can stay as-is until the next successful refresh.
+  }
+}
 </script>
 
 <template>
@@ -33,7 +42,7 @@ async function handleLogout() {
         <div class="space-y-2">
           <h1 class="text-3xl font-semibold tracking-tight">首页</h1>
           <p class="text-sm text-[var(--muted-foreground)]">
-            {{ profileQuery.isFetching.value ? "加载用户信息中..." : "已登录。" }}
+            {{ isProfileLoading ? "加载用户信息中..." : "已登录。" }}
           </p>
         </div>
 
@@ -46,7 +55,7 @@ async function handleLogout() {
         </div>
 
         <div class="flex gap-3">
-          <Button variant="secondary" @click="profileQuery.refetch()">刷新</Button>
+          <Button variant="secondary" @click="handleRefresh">刷新</Button>
           <Button @click="handleLogout">退出登录</Button>
         </div>
       </section>

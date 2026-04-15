@@ -22,7 +22,7 @@ const ROOT_ENV_FILE = resolve(__dirname, '..', '..', '..', '.env');
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'web', 'dist'),
-      exclude: ['/auth*', '/health'],
+      exclude: ['/auth/{*any}', '/health'],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

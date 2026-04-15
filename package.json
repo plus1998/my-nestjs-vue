@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "packageManager": "pnpm@10.15.0",
   "scripts": {
-    "build": "pnpm --filter @my-nestjs-vue/api-contract build && pnpm --filter @my-nestjs-vue/web build && pnpm --filter @my-nestjs-vue/server build",
-    "dev": "pnpm --parallel --stream --filter @my-nestjs-vue/api-contract --filter @my-nestjs-vue/server --filter @my-nestjs-vue/web run dev",
+    "build": "pnpm --filter @my-nestjs-vue/web build && pnpm --filter @my-nestjs-vue/server build",
+    "dev": "pnpm --parallel --stream --filter @my-nestjs-vue/server --filter @my-nestjs-vue/web run dev",
     "start": "pnpm build && pnpm --filter @my-nestjs-vue/server start",
     "dev:server": "pnpm --filter @my-nestjs-vue/server start:dev",
     "dev:web": "pnpm --filter @my-nestjs-vue/web dev",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm --filter @my-nestjs-vue/api-contract typecheck && pnpm --filter @my-nestjs-vue/server typecheck && pnpm --filter @my-nestjs-vue/web typecheck"
+    "typecheck": "pnpm --filter @my-nestjs-vue/server typecheck && pnpm --filter @my-nestjs-vue/web typecheck"
   }
 }

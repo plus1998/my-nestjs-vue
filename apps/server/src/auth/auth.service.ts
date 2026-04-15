@@ -7,13 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcryptjs';
 import { Repository } from 'typeorm';
 
-import type {
-  AuthUser,
-  LoginBody,
-  RegisterBody,
-} from '@my-nestjs-vue/api-contract';
-
 import { UserEntity } from '../users/entities/user.entity';
+import type { LoginDto } from './dto/login.dto';
+import type { RegisterDto } from './dto/register.dto';
+import type { AuthUser } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +19,7 @@ export class AuthService {
     private readonly usersRepository: Repository<UserEntity>,
   ) {}
 
-  async login(credentials: LoginBody) {
+  async login(credentials: LoginDto): Promise<AuthUser> {
     const user = await this.usersRepository.findOne({
       where: {
         username: credentials.username,
@@ -44,12 +41,10 @@ export class AuthService {
 
     const authUser = this.toAuthUser(user);
 
-    return {
-      user: authUser,
-    };
+    return authUser;
   }
 
-  async register(payload: RegisterBody) {
+  async register(payload: RegisterDto): Promise<AuthUser> {
     const existingUser = await this.usersRepository.findOne({
       where: {
         username: payload.username,
@@ -67,9 +62,7 @@ export class AuthService {
 
     const savedUser = await this.usersRepository.save(user);
 
-    return {
-      user: this.toAuthUser(savedUser),
-    };
+    return this.toAuthUser(savedUser);
   }
 
   async findAuthUserById(id: string): Promise<AuthUser | null> {

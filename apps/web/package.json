@@ -12,9 +12,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@my-nestjs-vue/api-contract": "workspace:*",
-    "@tanstack/vue-query": "^4.43.0",
-    "@ts-rest/vue-query": "^3.52.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.542.0",
