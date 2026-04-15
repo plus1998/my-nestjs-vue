@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { envValidationSchema } from './config/env.validation';
+import { RedisModule } from './redis/redis.module';
 
 const ROOT_ENV_FILE = resolve(__dirname, '..', '..', '..', '.env');
 
@@ -36,6 +37,7 @@ const ROOT_ENV_FILE = resolve(__dirname, '..', '..', '..', '.env');
         synchronize: false,
       }),
     }),
+    RedisModule,
     AuthModule,
   ],
   controllers: [AppController],

@@ -1,33 +1,26 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import * as session from 'express-session';
-import Redis from 'ioredis';
 
 import { AppModule } from './app.module';
 import { IoredisSessionStore } from './auth/stores/ioredis-session.store';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { REDIS_CLIENT } from './redis/redis.constants';
+import type Redis from 'ioredis';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableShutdownHooks();
   const configService = app.get(ConfigService);
+  const redisClient = app.get<Redis>(REDIS_CLIENT);
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
-  const redisClient = new Redis({
-    host: configService.getOrThrow<string>('REDIS_HOST'),
-    port: configService.getOrThrow<number>('REDIS_PORT'),
-    username: configService.get<string>('REDIS_USERNAME') || undefined,
-    password: configService.get<string>('REDIS_PASSWORD') || undefined,
-    db: configService.getOrThrow<number>('REDIS_DB'),
-    lazyConnect: false,
-  });
   const sessionSecret = configService.getOrThrow<string>('SESSION_SECRET');
   const sessionCookieName =
     configService.getOrThrow<string>('SESSION_COOKIE_NAME');
   const sessionMaxAgeDays =
     configService.get<number>('SESSION_MAX_AGE_DAYS') ?? 7;
   const sessionMaxAgeMs = sessionMaxAgeDays * 24 * 60 * 60 * 1000;
-
-  await redisClient.ping();
 
   app.enableCors({
     origin: true,
