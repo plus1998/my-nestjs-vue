@@ -15,7 +15,9 @@ async function bootstrap() {
   const redisClient = new Redis({
     host: configService.getOrThrow<string>('REDIS_HOST'),
     port: configService.getOrThrow<number>('REDIS_PORT'),
+    username: configService.get<string>('REDIS_USERNAME') || undefined,
     password: configService.get<string>('REDIS_PASSWORD') || undefined,
+    db: configService.getOrThrow<number>('REDIS_DB'),
     lazyConnect: false,
   });
   const sessionSecret = configService.getOrThrow<string>('SESSION_SECRET');

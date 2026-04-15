@@ -33,7 +33,7 @@ cp .env.example .env
 
 - `PORT`：后端服务端口
 - `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME`：MySQL 连接信息
-- `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD`：Redis 连接信息
+- `REDIS_HOST` / `REDIS_PORT` / `REDIS_USERNAME` / `REDIS_PASSWORD` / `REDIS_DB`：Redis 连接信息
 - `SESSION_SECRET`：会话密钥，生产环境必须使用高强度随机值
 - `VITE_API_BASE_URL`：前端请求后端的基础地址
 
@@ -173,7 +173,9 @@ pnpm install --frozen-lockfile
 - `DB_NAME`
 - `REDIS_HOST`
 - `REDIS_PORT`
+- `REDIS_USERNAME`
 - `REDIS_PASSWORD`
+- `REDIS_DB`
 - `SESSION_SECRET`
 - `VITE_API_BASE_URL`
 
