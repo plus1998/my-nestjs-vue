@@ -12,7 +12,7 @@ const props = defineProps<{
   <TabsList
     :class="
       cn(
-        'grid h-auto grid-cols-2 rounded-full bg-white/6 p-1',
+        'flex w-full gap-1 rounded-[var(--radius-tab)] border border-white/50 bg-slate-100/55 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md backdrop-saturate-150',
         props.class,
       )
     "

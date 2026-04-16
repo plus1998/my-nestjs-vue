@@ -15,7 +15,7 @@ const props = defineProps<{
     :disabled="props.disabled"
     :class="
       cn(
-        'inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] transition-all outline-none data-[state=active]:bg-[var(--primary)] data-[state=active]:text-[var(--primary-foreground)]',
+        'flex h-10 min-h-10 flex-1 basis-0 items-center justify-center rounded-[var(--radius-tab)] px-3 text-sm font-medium text-slate-600 outline-none transition-colors data-[state=active]:bg-white/92 data-[state=active]:text-[var(--primary)] data-[state=active]:shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_4px_14px_-4px_rgb(15_23_42/0.12)]',
         props.class,
       )
     "

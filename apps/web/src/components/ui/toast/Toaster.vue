@@ -16,11 +16,11 @@ const { dismissToast, toasts } = useToast();
 function toastClassName(variant: "default" | "success" | "error") {
   switch (variant) {
     case "success":
-      return "border-emerald-400/30 bg-emerald-500/12";
+      return "border-emerald-200 bg-emerald-50";
     case "error":
-      return "border-red-400/30 bg-red-500/12";
+      return "border-red-200 bg-red-50";
     default:
-      return "border-white/12 bg-[rgba(8,18,34,0.92)]";
+      return "border-slate-200 bg-white";
   }
 }
 </script>
@@ -32,7 +32,7 @@ function toastClassName(variant: "default" | "success" | "error") {
       :key="toast.id"
       :class="
         cn(
-          'grid w-[360px] gap-2 rounded-3xl border px-5 py-4 text-[var(--foreground)] shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl data-[state=open]:animate-in data-[state=closed]:animate-out',
+          'grid w-[360px] gap-2 rounded-xl border px-5 py-4 text-[var(--foreground)] shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out',
           toastClassName(toast.variant),
         )
       "
@@ -53,7 +53,7 @@ function toastClassName(variant: "default" | "success" | "error") {
         </div>
 
         <ToastClose
-          class="shrink-0 rounded-full border border-white/10 px-2 py-1 text-xs text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+          class="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-[var(--muted-foreground)] transition-colors hover:bg-slate-50 hover:text-slate-900"
           aria-label="关闭提示"
         >
           关闭
