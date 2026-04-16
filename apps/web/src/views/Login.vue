@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, shallowRef } from "vue";
 import { useRouter } from "vue-router";
-import { LockKeyhole, MessageSquare, UserRound } from "lucide-vue-next";
+import { LockKeyhole, UserRound } from "lucide-vue-next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,11 +75,13 @@ async function handleLogin() {
   <div class="auth-page-gradient text-slate-800">
     <div class="auth-glass-card px-6 pb-8 pt-10 sm:px-8">
       <div class="mb-8 text-center">
-        <div
-          class="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-md"
-        >
-          <MessageSquare class="h-6 w-6" aria-hidden="true" />
-        </div>
+        <img
+          src="/logo.svg"
+          alt=""
+          class="mx-auto mb-4 block h-12 w-12 object-contain sm:h-14 sm:w-14"
+          width="56"
+          height="56"
+        />
         <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
           应用控制台
         </h1>
